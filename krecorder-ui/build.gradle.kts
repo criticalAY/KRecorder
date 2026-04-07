@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.SonatypeHost
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -5,8 +7,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    `maven-publish`
-    signing
+    alias(libs.plugins.vanniktechPublish)
 }
 
 kotlin {
@@ -53,56 +54,8 @@ android {
     }
 }
 
-// ── Maven Central Publishing ──
-
-group = property("GROUP").toString()
-version = property("VERSION_NAME").toString()
-
-publishing {
-    publications.withType<MavenPublication> {
-        artifactId = "krecorder-ui"
-
-        pom {
-            name.set(property("POM_NAME").toString() + " UI")
-            description.set("Optional Compose Multiplatform UI for KRecorder")
-            url.set(property("POM_URL").toString())
-
-            licenses {
-                license {
-                    name.set(property("POM_LICENCE_NAME").toString())
-                    url.set(property("POM_LICENCE_URL").toString())
-                }
-            }
-            developers {
-                developer {
-                    id.set(property("POM_DEVELOPER_ID").toString())
-                    name.set(property("POM_DEVELOPER_NAME").toString())
-                    email.set(property("POM_DEVELOPER_EMAIL").toString())
-                }
-            }
-            scm {
-                url.set(property("POM_SCM_URL").toString())
-                connection.set(property("POM_SCM_CONNECTION").toString())
-                developerConnection.set(property("POM_SCM_DEV_CONNECTION").toString())
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name = "sonatype"
-            val releasesUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-            val snapshotsUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
-
-            credentials {
-                username = findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME")
-                password = findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD")
-            }
-        }
-    }
-}
-
-signing {
-    sign(publishing.publications)
+mavenPublishing {
+    configure(KotlinMultiplatform(javadocJar = com.vanniktech.maven.publish.JavadocJar.Empty()))
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
 }
