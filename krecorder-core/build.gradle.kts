@@ -99,6 +99,9 @@ publishing {
 }
 
 signing {
-    useGpgCmd()
+    val signingKeyId = findProperty("signing.keyId")?.toString() ?: System.getenv("SIGNING_KEY_ID")
+    val signingKey = findProperty("signing.key")?.toString() ?: System.getenv("SIGNING_KEY")
+    val signingPassword = findProperty("signing.password")?.toString() ?: System.getenv("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     sign(publishing.publications)
 }
